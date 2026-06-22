@@ -1,9 +1,15 @@
 stage('Deploy') {
     steps {
-        // Copy JAR from Jenkins workspace to VM
+        // Show workspace contents
+        bat "dir"
+
+        // Copy JAR to VM
         bat "scp target\\myapp-1.0-SNAPSHOT.jar ubuntu@${DEPLOY_HOST}:/opt/myapp/myapp.jar"
 
-        // Restart service on VM
-        bat "ssh ubuntu@${DEPLOY_HOST} \"sudo systemctl restart myapp\""
+        // Copy playbook to VM
+        bat "scp deploy.yml ubuntu@${DEPLOY_HOST}:/home/ubuntu/deploy.yml"
+
+        // Run Ansible on VM
+        bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
     }
 }
