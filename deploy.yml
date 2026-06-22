@@ -1,0 +1,14 @@
+---
+- name: Deploy Maven artifact
+  hosts: appservers
+  tasks:
+    - name: Copy JAR from Jenkins to server
+      copy:
+        src: /mnt/c/ProgramData/Jenkins/.jenkins/workspace/123/target/myapp-1.0-SNAPSHOT.jar
+        dest: /opt/myapp/myapp.jar
+        mode: '0755'
+
+    - name: Restart application service
+      systemd:
+        name: myapp
+        state: restarted
