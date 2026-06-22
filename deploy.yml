@@ -1,14 +1,9 @@
----
-- name: Deploy Maven artifact
-  hosts: appservers
-  tasks:
-    - name: Copy JAR from Jenkins to server
-      copy:
-        src: /mnt/c/ProgramData/Jenkins/.jenkins/workspace/123/target/myapp-1.0-SNAPSHOT.jar
-        dest: /opt/myapp/myapp.jar
-        mode: '0755'
+stage('Deploy') {
+    steps {
+        // Copy JAR from Jenkins workspace to VM
+        bat "scp target\\myapp-1.0-SNAPSHOT.jar ubuntu@${DEPLOY_HOST}:/opt/myapp/myapp.jar"
 
-    - name: Restart application service
-      systemd:
-        name: myapp
-        state: restarted
+        // Restart service on VM
+        bat "ssh ubuntu@${DEPLOY_HOST} \"sudo systemctl restart myapp\""
+    }
+}
