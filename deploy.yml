@@ -6,10 +6,10 @@ stage('Deploy') {
         // Copy JAR to VM
         bat "scp target\\myapp-1.0-SNAPSHOT.jar ubuntu@${DEPLOY_HOST}:/opt/myapp/myapp.jar"
 
-        // Copy playbook to VM
+        // Copy playbook from root of repo
         bat "scp deploy.yml ubuntu@${DEPLOY_HOST}:/home/ubuntu/deploy.yml"
 
-        // Run Ansible on VM
+        // Run Ansible using the copied playbook
         bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
     }
 }
