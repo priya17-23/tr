@@ -1,0 +1,9 @@
+stage('Deploy') {
+    steps {
+        // If using WSL on Windows
+        bat 'wsl ansible-playbook inventory/hosts.ini playbooks/deploy.yml'
+
+        // Or if using a remote Linux VM
+        // bat 'ssh ubuntu@192.168.1.50 "ansible-playbook /home/ubuntu/playbooks/deploy.yml -i /home/ubuntu/playbooks/hosts.ini"'
+    }
+}
