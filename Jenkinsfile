@@ -7,8 +7,7 @@ pipeline {
 
     environment {
         DEPLOY_HOST = "192.168.1.50"
-        INVENTORY   = "TR/hosts.ini"   // inventory file in repo
-        PLAYBOOK    = "TR/deploy.yml"  // playbook file in repo
+        PLAYBOOK    = "TR\\deploy.yml"   // Windows path to playbook in repo
     }
 
     stages {
@@ -20,39 +19,34 @@ pipeline {
 
         stage('Build') {
             steps {
-                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    bat 'mvn clean compile'
-                }
+                bat 'mvn clean compile'
             }
         }
 
         stage('Test') {
             steps {
-                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    bat 'mvn test'
-                    junit '**/target/surefire-reports/*.xml'
-                }
+                bat 'mvn test'
+                junit '**/target/surefire-reports/*.xml'
             }
         }
 
         stage('Package') {
             steps {
-                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    bat 'mvn package'
-                    archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-                }
+                bat 'mvn package'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
 
         stage('Deploy') {
             steps {
-                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    // Copy playbook + inventory from Jenkins workspace to VM
-                    bat "scp ${PLAYBOOK} ${INVENTORY} ubuntu@${DEPLOY_HOST}:/home/ubuntu/"
+                // Show workspace contents to confirm file paths
+                bat "dir TR"
 
-                    // Run Ansible using the copied files
-                    bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
-                }
+                // Copy only deploy.yml from workspace to VM
+                bat "scp TR\\deploy.yml ubuntu@${DEPLOY_HOST}:/home/ubuntu/deploy.yml"
+
+                // Run Ansible using the copied playbook
+                bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
             }
         }
     }
