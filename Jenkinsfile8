@@ -6,4 +6,61 @@ stage('Deploy') {
         // Or if using a remote Linux VM
         // bat 'ssh ubuntu@192.168.1.50 "ansible-playbook /home/ubuntu/playbooks/deploy.yml -i /home/ubuntu/playbooks/hosts.ini"'
     }
+}pipeline {
+    agent any
+
+    options {
+        ansiColor('xterm')   // Colorized console output for Ansible logs
+        timeout(time: 20, unit: 'MINUTES') // Prevent jobs from hanging
+    }
+
+    environment {
+        DEPLOY_HOST = "192.168.1.50"
+        PLAYBOOK    = "/home/ubuntu/deploy.yml"
+        INVENTORY   = "/home/ubuntu/hosts.ini"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'mvn clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                bat 'mvn test'
+                junit '**/target/surefire-reports/*.xml'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                bat 'mvn package'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Trigger Ansible on Linux VM via SSH
+                bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook ${PLAYBOOK} -i ${INVENTORY}\""
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build and Deploy Successful'
+        }
+        failure {
+            echo '❌ Build or Deploy Failed'
+        }
+    }
 }
