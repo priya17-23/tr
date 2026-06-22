@@ -1,23 +1,15 @@
-stage('Deploy') {
-    steps {
-        // If using WSL on Windows
-        bat 'wsl ansible-playbook inventory/hosts.ini playbooks/deploy.yml'
-
-        // Or if using a remote Linux VM
-        // bat 'ssh ubuntu@192.168.1.50 "ansible-playbook /home/ubuntu/playbooks/deploy.yml -i /home/ubuntu/playbooks/hosts.ini"'
-    }
-}pipeline {
+pipeline {
     agent any
 
     options {
-        ansiColor('xterm')   // Colorized console output for Ansible logs
-        timeout(time: 20, unit: 'MINUTES') // Prevent jobs from hanging
+        ansiColor('xterm')   // Colorized console output
+        timeout(time: 20, unit: 'MINUTES')
     }
 
     environment {
         DEPLOY_HOST = "192.168.1.50"
-        PLAYBOOK    = "/home/ubuntu/deploy.yml"
-        INVENTORY   = "/home/ubuntu/hosts.ini"
+        INVENTORY   = "TR/hosts.ini"   // keep inventory in repo too
+        PLAYBOOK    = "TR/deploy.yml"  // playbook path in repo
     }
 
     stages {
@@ -49,8 +41,11 @@ stage('Deploy') {
 
         stage('Deploy') {
             steps {
-                // Trigger Ansible on Linux VM via SSH
-                bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook ${PLAYBOOK} -i ${INVENTORY}\""
+                // Copy playbook + inventory from Jenkins workspace to VM
+                bat "scp ${PLAYBOOK} ${INVENTORY} ubuntu@${DEPLOY_HOST}:/home/ubuntu/"
+
+                // Run Ansible using the copied files
+                bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
             }
         }
     }
