@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     options {
-        ansiColor('xterm')                // Colorized console output
+        ansiColor('xterm')                 // Colorized console output
         timeout(time: 20, unit: 'MINUTES') // Prevent jobs from hanging
     }
 
     environment {
         DEPLOY_HOST = "192.168.1.50"
-        INVENTORY   = "TR/hosts.ini"   // inventory file in repo
-        PLAYBOOK    = "TR/deploy.yml"  // playbook file in repo
+        INVENTORY   = "tr/hosts.ini"   // inventory file in repo
+        PLAYBOOK    = "tr/deploy.yml"  // playbook file in repo
     }
 
     stages {
@@ -49,6 +49,12 @@ pipeline {
                     bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            cleanWs() // Clean workspace after build
         }
     }
 }
