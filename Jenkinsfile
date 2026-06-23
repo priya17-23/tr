@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         DEPLOY_HOST = "192.168.1.50"
-        PLAYBOOK    = "tr/deploy.yml"  // playbook file in repo
+        PLAYBOOK    = "tr/deploy.yml"      // playbook file in repo
     }
 
     stages {
