@@ -8,7 +8,6 @@ pipeline {
 
     environment {
         DEPLOY_HOST = "192.168.1.50"
-        INVENTORY   = "tr/hosts.ini"   // inventory file in repo
         PLAYBOOK    = "tr/deploy.yml"  // playbook file in repo
     }
 
@@ -42,11 +41,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'xterm']) {
-                    // Copy playbook + inventory from Jenkins workspace to VM
-                    bat "scp ${PLAYBOOK} ${INVENTORY} ubuntu@${DEPLOY_HOST}:/home/ubuntu/"
+                    // Copy playbook from Jenkins workspace to VM
+                    bat "scp ${PLAYBOOK} ubuntu@${DEPLOY_HOST}:/home/ubuntu/"
                     
-                    // Run Ansible using the copied files
-                    bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml -i /home/ubuntu/hosts.ini\""
+                    // Run Ansible using the copied playbook
+                    bat "ssh ubuntu@${DEPLOY_HOST} \"ansible-playbook /home/ubuntu/deploy.yml\""
                 }
             }
         }
